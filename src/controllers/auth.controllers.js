@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { findUserByEmail, insertUser } from '../models/user.model.js';
+import { deleteUserById, findUserByEmail, insertUser } from '../models/user.model.js';
 import { generateToken } from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
@@ -37,7 +37,17 @@ export const loginUser = async (req, res) => {
         console.error('Error logging in user:', error);
         res.status(500).json({ error: 'Login failed' });
     }
+}
 
-
-    
+export const deleteUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+         // Ensure user exists before deletion
+        const deletedUser = await deleteUserById(userId);
+        console.log('Deleted user:', deletedUser);
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Deletion failed' });
+    }
 }
