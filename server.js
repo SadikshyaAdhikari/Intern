@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 import app from "./src/app.js";
+
 import { addColumnToUserTable, createDatabase, updatePhoneNumber } from "./src/services/database.service.js";
 import { createUserTable } from "./src/models/user.model.js";
 import { insertUser } from "./src/services/database.service.js";
@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 // await createUserTable();
 // await insertUser();
 // await fetchUsers();
+await createUserTable();
 // await updateUserEmail('Ram', 'r@gmail.com');
 // await addColumnToUserTable();
 // await updatePhoneNumber([26, 24], ['9876543210', '9865432109']);
