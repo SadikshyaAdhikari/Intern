@@ -8,6 +8,7 @@ export const createUserTable = async () => {
       email VARCHAR(150) NOT NULL UNIQUE,
       password TEXT NOT NULL,
       role VARCHAR(20) DEFAULT 'user',
+      token VARCHAR(500),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -15,14 +16,25 @@ export const createUserTable = async () => {
 };
 
 // Insert a new user
-export const insertUser = async (username, email, hashedPassword) => {
+export const insertUser = async (username, email, hashedPassword, role, token) => {
   const query = `
-    INSERT INTO users (username, email, password)
-    VALUES ($1, $2, $3)
+    INSERT INTO users (username, email, password, role, token)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
   `;
-  return db.one(query, [username, email, hashedPassword]);
+  return db.one(query, [username, email, hashedPassword, role, token]);
 };
+
+export const insertToken = async (token, userId ) => {
+  const query = `
+    UPDATE users  
+    SET token = $1
+    WHERE id = $2
+    RETURNING *;
+  `;
+  return db.one(query, [token, userId]);
+}
+
 
 // Find user by email
 export const findUserByEmail = async (email) => {

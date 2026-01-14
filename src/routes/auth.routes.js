@@ -10,7 +10,10 @@ router.post('/register', registerUser);
 
 //Login route
 router.post('/login', loginUser);
-
+//view my details
+// /me
+//whoeever calls it should get its informtation(token)
+//if token expired, it should not give access
 //Delete user route
 router.delete('/delete/:id', deleteUser);
 
