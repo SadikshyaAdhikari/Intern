@@ -45,3 +45,14 @@ export const findUserByEmail = async (email) => {
 export const deleteUserById = async (id) => {
   return db.none('DELETE FROM users WHERE id = $1', [id]);
 };
+
+
+// Find user by id
+export const findUserById = async (id) => {
+  return db.oneOrNone('SELECT * FROM users WHERE id = $1', [id]);
+};
+
+//view my details
+export const getUserDetails = async (id) => {
+  return db.oneOrNone('SELECT id, username, email, role, created_at FROM users WHERE id = $1', [id]);
+};

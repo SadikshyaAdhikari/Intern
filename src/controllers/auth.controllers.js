@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { deleteUserById, findUserByEmail, insertToken, insertUser} from '../models/user.model.js';
+import { deleteUserById, findUserByEmail, getUserDetails, insertToken, insertUser} from '../models/user.model.js';
 import { generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
@@ -44,7 +44,7 @@ export const loginUser = async (req, res) => {
         }  
         console.log('User logged in:', user); 
         const token = generateToken(user);
-        console.log('Generated token:', token);
+        // console.log('Generated token:', token);
 
         const insertedTokenUser = await insertToken(token, user.id);
         console.log('Updated user with token:', insertedTokenUser);
@@ -77,4 +77,24 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Deletion failed" });
   }
+};
+
+
+export const viewMyDetails = async (req, res) => {
+    console.log(req.body)
+  try {
+    // const userId = req.body.id;
+    const userId = req.params.id;
+
+    
+    console.log('Fetching details for user ID:', userId);
+    const userDetails = await getUserDetails(userId);
+
+    if (!userDetails) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ user: userDetails });
+    } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve user details" });
+    }
 };
