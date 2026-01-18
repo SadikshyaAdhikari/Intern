@@ -21,7 +21,7 @@ export async function insertUser() {
     try {
     await db.any(query);
 
-    console.log('Inserted data into users table');
+      console.log('Inserted data into users table');
   } catch (error) {
     console.error('Error inserting user data:', error.message);
   }
