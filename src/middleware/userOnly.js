@@ -2,6 +2,7 @@ import { verifyToken } from "../utils/token.js";
 
 export const userOnly = (req, res, next) => {
   try {
+console.log('Cookies: ', req.cookies)
     const header = req.headers.authorization;
 
     if (!header || !header.startsWith("Bearer ")) {
