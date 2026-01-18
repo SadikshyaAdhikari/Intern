@@ -4,6 +4,7 @@ import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, in
 import { generateRefreshToken, generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
+  // console.log('Cookies: ', req.cookies)
   try {
     const { username, email, password, role } = req.body; 
     const token = generateToken({ id: null, email, role });
@@ -31,6 +32,7 @@ export const registerUser = async (req, res) => {
 
 
 export const loginUser = async (req, res) => {
+  // console.log('Cookies: ', req.cookies)
     try {
         const { email, password } = req.body;
         const user = await findUserByEmail(email);
@@ -56,11 +58,29 @@ export const loginUser = async (req, res) => {
           console.log('Updated user with refresh token:', updatedUserWithRefreshToken);
 
 
+        //set cookie with access token and refresh token
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 60 * 60 * 1000 // 1 hour
+        });
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 24 * 60 * 60 * 1000 // 1 day
+        });
+
+        
+
+
         res.status(200).json({ 
             message: 'Login successful',
             accessToken,
             refreshToken
         });
+
     } catch (error) {
         console.error('Error logging in user:', error);
         res.status(500).json({ error: 'Login failed' });
@@ -71,6 +91,7 @@ export const loginUser = async (req, res) => {
 
 
 export const deleteUser = async (req, res) => {
+  console.log('Cookies: ', req.cookies)
   try {
     const userId = req.params.id;
     
@@ -106,3 +127,4 @@ export const viewMyDetails = async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve user details" });
     }
 };
+
