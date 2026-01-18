@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { deleteUserById, findUserByEmail, getUserDetails, insertToken, insertUser} from '../models/user.model.js';
-import { generateToken} from '../utils/token.js';
+import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser} from '../models/user.model.js';
+import { generateRefreshToken, generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
   try {
@@ -43,15 +43,23 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Invalid password' });
         }  
         console.log('User logged in:', user); 
-        const token = generateToken(user);
+        const accessToken = generateToken(user);
         // console.log('Generated token:', token);
 
-        const insertedTokenUser = await insertToken(token, user.id);
+        const insertedTokenUser = await insertToken(accessToken, user.id);
         console.log('Updated user with token:', insertedTokenUser);
+
+        //refresh token
+         const refreshToken = generateRefreshToken(accessToken);
+         console.log('Generated refresh token:', refreshToken);
+         const updatedUserWithRefreshToken = await insertRefreshToken(refreshToken, user.id);
+          console.log('Updated user with refresh token:', updatedUserWithRefreshToken);
+
 
         res.status(200).json({ 
             message: 'Login successful',
-            token 
+            accessToken,
+            refreshToken
         });
     } catch (error) {
         console.error('Error logging in user:', error);

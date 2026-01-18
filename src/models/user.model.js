@@ -56,3 +56,27 @@ export const findUserById = async (id) => {
 export const getUserDetails = async (id) => {
   return db.oneOrNone('SELECT id, username, email, role, created_at FROM users WHERE id = $1', [id]);
 };
+
+//add refresh token column to users table
+export const addRefreshTokenColumn = async () => {
+  const query = `
+    ALTER TABLE users
+    ADD COLUMN refresh_token VARCHAR(500) NULL;
+  `;
+  try{
+  return db.none(query);
+  } catch (error) {
+    console.error("Error adding refresh_token column:", error.message);
+  }
+} ;
+
+// Update refresh token for a user
+export const insertRefreshToken = async (refreshToken, userId) => {
+  const query = `
+    UPDATE users  
+    SET refresh_token = $1
+    WHERE id = $2
+    RETURNING *;
+  `;
+  return db.one(query, [refreshToken, userId]);
+};

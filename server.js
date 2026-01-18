@@ -9,6 +9,7 @@ import { insertUser } from "./src/services/database.service.js";
 import { fetchUsers } from "./src/services/database.service.js";
 import { updateUserEmail } from "./src/services/database.service.js";
 import { deleteUser } from "./src/services/database.service.js";
+import { addRefreshTokenColumn } from "./src/models/user.model.js";
 
 //const PORT = 3000; //dont use this port here use it fronm env file
 
@@ -24,7 +25,7 @@ await createUserTable();
 // await addColumnToUserTable();
 // await updatePhoneNumber([26, 24], ['9876543210', '9865432109']);
 // await deleteUser([25,35,37]);
-
+// await addRefreshTokenColumn();
 
 
 // Start server

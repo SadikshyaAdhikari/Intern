@@ -12,7 +12,7 @@ export const generateToken = (user) => {
     email: user.email,
     role: user.role
   };
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 }   
 
 export const verifyToken = (token) => {
@@ -21,5 +21,17 @@ export const verifyToken = (token) => {
     } catch (error) {
     throw new Error('Invalid token');
   }
+}
+
+export const generateRefreshToken = (accessToken) => {
+  try {
+
+    const decoded = jwt.verify(accessToken, JWT_SECRET, { ignoreExpiration: true });
+    delete decoded.iat;
+    delete decoded.exp;
+    return jwt.sign(decoded, JWT_SECRET, { expiresIn: '1d' });
+  } catch (error) {
+    throw new Error('Invalid token');
+  } 
 }
 
