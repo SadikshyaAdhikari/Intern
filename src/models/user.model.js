@@ -80,3 +80,9 @@ export const insertRefreshToken = async (refreshToken, userId) => {
   `;
   return db.one(query, [refreshToken, userId]);
 };
+
+
+// Find user by refresh token
+export const findUserByRefreshToken = async (refreshToken) => {
+  return db.oneOrNone('SELECT * FROM users WHERE refresh_token = $1', [refreshToken]);
+}

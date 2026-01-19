@@ -12,7 +12,7 @@ export const generateToken = (user) => {
     email: user.email,
     role: user.role
   };
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '10000' });
 }   
 
 export const verifyToken = (token) => {
@@ -33,6 +33,14 @@ export const generateRefreshToken = (accessToken) => {
   } catch (error) {
     throw new Error('Invalid token');
   } 
+}
+
+export const verifyRefreshToken = (token) => {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+    } catch (error) {
+    throw new Error('Invalid refresh token');
+  }
 }
 
 
