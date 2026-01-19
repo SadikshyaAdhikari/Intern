@@ -72,8 +72,6 @@ export const loginUser = async (req, res) => {
           maxAge: 24 * 60 * 60 * 1000 // 1 day
         });
 
-        
-
 
         res.status(200).json({ 
             message: 'Login successful',
@@ -110,8 +108,9 @@ export const deleteUser = async (req, res) => {
 
 
 export const viewMyDetails = async (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
   try {
+    
     // const userId = req.body.id;
     const userId = req.params.id;
 
@@ -119,7 +118,10 @@ export const viewMyDetails = async (req, res) => {
     console.log('Fetching details for user ID:', userId);
     const userDetails = await getUserDetails(userId);
 
+
+
     if (!userDetails) {
+      
       return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json({ user: userDetails });

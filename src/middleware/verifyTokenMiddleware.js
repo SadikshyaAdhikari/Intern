@@ -1,7 +1,7 @@
 import { verifyRefreshToken } from "../utils/token.js";
 import { findUserById } from "../models/user.model.js";
 
-export const refreshTokenMiddleware = async (req, res, next) => {
+export const verifyRefreshTokenMiddleware = async (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     // console.log('Refresh Token from cookies:', refreshToken);

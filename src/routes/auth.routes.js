@@ -5,7 +5,8 @@ import { deleteUser } from '../controllers/auth.controllers.js';
 import { adminOnly } from '../middleware/adminOnly.js';
 import { viewMyDetails } from '../controllers/auth.controllers.js';
 import { userOnly } from '../middleware/userOnly.js';
-import { refreshTokenMiddleware } from '../middleware/refreshToken.js';
+import { verifyRefreshTokenMiddleware } from '../middleware/verifyTokenMiddleware.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 
 const router = express.Router();
@@ -22,10 +23,10 @@ router.delete('/delete/:id', adminOnly, deleteUser);
 
 //view my details
 // router.post('/me', viewMyDetails);
-router.get('/me/:id', userOnly, viewMyDetails);
+router.get('/me/:id',authMiddleware, userOnly, viewMyDetails);
 
 //refresh token route
-router.post('/refresh-token', refreshTokenMiddleware ,refreshToken);
+router.post('/refresh-token', verifyRefreshTokenMiddleware ,refreshToken);
 
 // module.exports = router;
 export default router;
