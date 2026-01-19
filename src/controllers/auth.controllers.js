@@ -91,7 +91,7 @@ export const loginUser = async (req, res) => {
 
 
 export const deleteUser = async (req, res) => {
-  console.log('Cookies: ', req.cookies)
+  // console.log('Cookies: ', req.cookies)
   try {
     const userId = req.params.id;
     
@@ -128,3 +128,39 @@ export const viewMyDetails = async (req, res) => {
     }
 };
 
+//refresh token endpoint
+export const refreshToken = async (req, res) => {
+  try {
+    const user = req.user; 
+
+    const newAccessToken = generateToken(user);
+
+    const newRefreshToken = generateRefreshToken(newAccessToken);
+    // console.log('Generated new access token:', newAccessToken);
+    // console.log('Generated new refresh token:', newRefreshToken);
+
+    await insertToken(newAccessToken, user.id);
+    await insertRefreshToken(newRefreshToken, user.id);
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 60 * 60 * 1000 // 5 minutes
+    });
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
+    return res.status(200).json({ message: "Token refreshed" });
+
+
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    return res.status(500).json({ error: "Token refresh failed" });
+  }
+};

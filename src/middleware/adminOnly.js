@@ -4,13 +4,15 @@ import { verifyToken } from "../utils/token.js";
 
 export const adminOnly = (req, res, next) => {
   try {
-    const header = req.headers.authorization;
+    // const header = req.headers.authorization;
 
-    if (!header || !header.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Authorization header missing" });
-    }
+    // if (!header || !header.startsWith("Bearer ")) {
+    //   return res.status(401).json({ error: "Authorization header missing" });
+    // }
 
-    const token = header.split(" ")[1];
+    // const token = header.split(" ")[1];
+
+    const token = req.cookies.accessToken;
 
     let decoded;
     try {

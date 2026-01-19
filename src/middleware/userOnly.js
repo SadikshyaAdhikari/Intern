@@ -3,13 +3,9 @@ import { verifyToken } from "../utils/token.js";
 export const userOnly = (req, res, next) => {
   try {
 console.log('Cookies: ', req.cookies)
-    const header = req.headers.authorization;
-
-    if (!header || !header.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Authorization header missing" });
-    }
-
-    const token = header.split(" ")[1];
+const token = req.cookies.accessToken;
+console.log('Access Token from cookies:', token);
+    
 
     let decoded;
     try {

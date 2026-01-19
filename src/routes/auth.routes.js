@@ -1,10 +1,12 @@
 import express from 'express';
-import { registerUser } from '../controllers/auth.controllers.js';
+import { refreshToken, registerUser } from '../controllers/auth.controllers.js';
 import { loginUser } from '../controllers/auth.controllers.js';
 import { deleteUser } from '../controllers/auth.controllers.js';
 import { adminOnly } from '../middleware/adminOnly.js';
 import { viewMyDetails } from '../controllers/auth.controllers.js';
 import { userOnly } from '../middleware/userOnly.js';
+import { refreshTokenMiddleware } from '../middleware/refreshToken.js';
+
 
 const router = express.Router();
 
@@ -22,10 +24,8 @@ router.delete('/delete/:id', adminOnly, deleteUser);
 // router.post('/me', viewMyDetails);
 router.get('/me/:id', userOnly, viewMyDetails);
 
-
-// /me
-//whoeever calls it should get its informtation(token)
-//if token expired, it should not give access
+//refresh token route
+router.post('/refresh-token', refreshTokenMiddleware ,refreshToken);
 
 // module.exports = router;
 export default router;
