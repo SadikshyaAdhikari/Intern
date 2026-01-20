@@ -46,9 +46,9 @@ export const authMiddleware = async (req, res, next) => {
 
     //Use the **same refresh token generation method** from your utils
     // It expects an access token as input
-     const newRefreshToken = generateRefreshToken(newAccessToken); 
+     //const newRefreshToken = generateRefreshToken(newAccessToken); 
 
-    await insertRefreshToken(newRefreshToken, user.id);
+    //await insertRefreshToken(newRefreshToken, user.id);
 
     // Set cookies
     res.cookie("accessToken", newAccessToken, {
@@ -58,7 +58,7 @@ export const authMiddleware = async (req, res, next) => {
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
-    res.cookie("refreshToken", newRefreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
