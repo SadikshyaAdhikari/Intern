@@ -7,17 +7,37 @@ export const registerUser = async (req, res) => {
   // console.log('Cookies: ', req.cookies)
   try {
     const { username, email, password, role } = req.body; 
-    const token = generateToken({ id: null, email, role });
-    // console.log(req.body);
-
-    const user = await findUserByEmail(email);
+      const user = await findUserByEmail(email);
     if (user) {
         return res.status(400).json({ error: 'User already exists' });
     }
+    const accessToken = generateToken({ id: null, email, role });
+    // console.log("token:",token)
+    console.log(req.body);
+    const refreshToken = await generateRefreshToken(accessToken);
+    console.log("refreshtoken:",refreshToken)
+
+  
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await insertUser(username, email, hashedPassword, role, token);
+    const newUser = await insertUser(username, email, hashedPassword, role, accessToken, refreshToken);
     console.log('Registered new user:', newUser);
+
+
+    
+        //set cookie with access token and refresh token
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 60 * 60 * 1000 // 1 hour
+        });
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 24 * 60 * 60 * 1000 // 1 day
+        });
     
     
     res.status(201).json({ 
@@ -166,3 +186,20 @@ export const refreshToken = async (req, res) => {
     return res.status(500).json({ error: "Token refresh failed" });
   }
 };
+
+export const logoutUser = async (req, res) => {
+  try {
+    // Clear the authentication cookies
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Error logging out user:", error);
+    res.status(500).json({ error: "Logout failed" });
+  }
+};
+
+
+
+

@@ -16,13 +16,13 @@ export const createUserTable = async () => {
 };
 
 // Insert a new user
-export const insertUser = async (username, email, hashedPassword, role, token) => {
+export const insertUser = async (username, email, hashedPassword, role, token, refresh_token) => {
   const query = `
-    INSERT INTO users (username, email, password, role, token)
-    VALUES ($1, $2, $3, $4, $5)
+    INSERT INTO users (username, email, password, role, token,refresh_token)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
   `;
-  return db.one(query, [username, email, hashedPassword, role, token]);
+  return db.one(query, [username, email, hashedPassword, role, token,refresh_token]);
 };
 
 export const insertToken = async (token, userId ) => {

@@ -1,5 +1,5 @@
 import express from 'express';
-import { refreshToken, registerUser } from '../controllers/auth.controllers.js';
+import { logoutUser, refreshToken, registerUser } from '../controllers/auth.controllers.js';
 import { loginUser } from '../controllers/auth.controllers.js';
 import { deleteUser } from '../controllers/auth.controllers.js';
 import { adminOnly } from '../middleware/adminOnly.js';
@@ -18,7 +18,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 
 //Delete user route
-router.delete('/delete/:id', adminOnly, deleteUser);
+router.delete('/delete/:id',adminOnly, deleteUser);
 
 
 //view my details
@@ -27,6 +27,9 @@ router.get('/me/:id',authMiddleware, userOnly, viewMyDetails);
 
 //refresh token route
 router.post('/refresh-token', verifyRefreshTokenMiddleware ,refreshToken);
+
+//logout route
+router.post('/logout', logoutUser);
 
 // module.exports = router;
 export default router;
