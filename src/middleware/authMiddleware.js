@@ -10,7 +10,6 @@ export const authMiddleware = async (req, res, next) => {
       try {
         const decoded = verifyToken(accessToken);
         const user = await findUserById(decoded.id);
-
         if (!user) {
           return res.status(401).json({ error: "User not found" });
         }
@@ -29,6 +28,7 @@ export const authMiddleware = async (req, res, next) => {
 
     // Access token missing or expired → try refresh token
     const refreshToken = req.cookies.refreshToken;
+    console.log("refreshToken=",refreshToken)
     if (!refreshToken) {
       return res.status(401).json({ error: "Session expired" });
     }
@@ -46,7 +46,7 @@ export const authMiddleware = async (req, res, next) => {
 
     //Use the **same refresh token generation method** from your utils
     // It expects an access token as input
-    const newRefreshToken = generateRefreshToken(newAccessToken); 
+     const newRefreshToken = generateRefreshToken(newAccessToken); 
 
     await insertRefreshToken(newRefreshToken, user.id);
 
