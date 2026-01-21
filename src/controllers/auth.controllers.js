@@ -7,42 +7,45 @@ export const registerUser = async (req, res) => {
   // console.log('Cookies: ', req.cookies)
   try {
     const { username, email, password, role } = req.body; 
-      const user = await findUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (user) {
         return res.status(400).json({ error: 'User already exists' });
     }
-    const accessToken = generateToken({ id: null, email, role });
-    // console.log("token:",token)
-    console.log(req.body);
-    const refreshToken = await generateRefreshToken(accessToken);
-    console.log("refreshtoken:",refreshToken)
-
-  
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await insertUser(username, email, hashedPassword, role, accessToken, refreshToken);
+    const newUser = await insertUser(username, email, hashedPassword, role, '', '');
     console.log('Registered new user:', newUser);
 
+    // Auto-login: Generate tokens with the newly created user ID
+    const accessToken = generateToken({ id: newUser.id, email, role });
+    console.log("token:", accessToken);
+    const refreshToken = await generateRefreshToken(accessToken);
+    console.log("refreshtoken:", refreshToken);
 
-    
-        //set cookie with access token and refresh token
-        res.cookie('accessToken', accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'Strict',
-          maxAge: 60 * 60 * 1000 // 1 hour
-        });
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'Strict',
-          maxAge: 24 * 60 * 60 * 1000 // 1 day
-        });
-    
+    // Update user with tokens
+    await insertToken(accessToken, newUser.id);
+    await insertRefreshToken(refreshToken, newUser.id);
+
+    //set cookie with access token and refresh token
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 60 * 60 * 1000 // 1 hour
+    });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
     
     res.status(201).json({ 
-       user: {newUser}, 
-        message: 'User registered successfully' }); 
+       user: newUser, 
+       message: 'User registered successfully and auto-logged in',
+       accessToken,
+       refreshToken
+    }); 
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ error: 'Registration failed' });
