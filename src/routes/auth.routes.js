@@ -1,5 +1,5 @@
 import express from 'express';
-import { logoutUser, refreshToken, registerUser } from '../controllers/auth.controllers.js';
+import { logoutUser, logoutFromAllDevices, refreshToken, registerUser } from '../controllers/auth.controllers.js';
 import { loginUser } from '../controllers/auth.controllers.js';
 import { deleteUser } from '../controllers/auth.controllers.js';
 import { adminOnly } from '../middleware/adminOnly.js';
@@ -30,6 +30,9 @@ router.post('/refresh-token', verifyRefreshTokenMiddleware ,refreshToken);
 
 //logout route
 router.post('/logout', logoutUser);
+
+//logout from all devices route
+router.post('/logout-all-devices', authMiddleware, logoutFromAllDevices);
 
 // module.exports = router;
 export default router;

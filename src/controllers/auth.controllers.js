@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser} from '../models/user.model.js';
+import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens} from '../models/user.model.js';
 import { generateRefreshToken, generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
@@ -200,6 +200,27 @@ export const logoutUser = async (req, res) => {
   } catch (error) {
     console.error("Error logging out user:", error);
     res.status(500).json({ error: "Logout failed" });
+  }
+};
+
+export const logoutFromAllDevices = async (req, res) => {
+  try {
+    const user = req.user; 
+    // console.log("loggedout user",user)
+    
+    // Clear all tokens for this user in the database
+    await clearAllTokens(user.id);
+    console.log("userID",user.id)
+
+    
+    // Clear the authentication cookies
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    res.status(200).json({ message: "Logged out from all devices successfully" });
+  } catch (error) {
+    console.error("Error logging out from all devices:", error);
+    res.status(500).json({ error: "Logout from all devices failed" });
   }
 };
 

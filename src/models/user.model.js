@@ -8,7 +8,7 @@ export const createUserTable = async () => {
       email VARCHAR(150) NOT NULL UNIQUE,
       password TEXT NOT NULL,
       role VARCHAR(20) DEFAULT 'user',
-      token VARCHAR(500),
+      token VARCHAR(500) NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -85,4 +85,15 @@ export const insertRefreshToken = async (refreshToken, userId) => {
 // Find user by refresh token
 export const findUserByRefreshToken = async (refreshToken) => {
   return db.oneOrNone('SELECT * FROM users WHERE refresh_token = $1', [refreshToken]);
-}
+};
+
+// Clear all tokens for a user (logout from all devices)
+export const clearAllTokens = async (userId) => {
+  const query = `
+    UPDATE users  
+    SET token = '', refresh_token = ''
+    WHERE id = $1
+    RETURNING *;
+  `;
+  return db.one(query, [userId]);
+};

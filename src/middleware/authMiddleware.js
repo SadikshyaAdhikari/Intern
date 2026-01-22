@@ -16,7 +16,7 @@ export const authMiddleware = async (req, res, next) => {
 
         
 
-        req.user = { id: user.id };
+        req.user = user;
         return next();
       } catch (err) {
         // Only continue to refresh logic if token expired
