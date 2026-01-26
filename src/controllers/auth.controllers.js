@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens} from '../models/user.model.js';
+import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens, findUserById} from '../models/user.model.js';
 import { generateRefreshToken, generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
@@ -14,13 +14,13 @@ export const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await insertUser(username, email, hashedPassword, role, '', '');
-    console.log('Registered new user:', newUser);
+    // console.log('Registered new user:', newUser);
 
     // Auto-login: Generate tokens with the newly created user ID
     const accessToken = generateToken({ id: newUser.id, email, role });
-    console.log("token:", accessToken);
+    // console.log("token:", accessToken);
     const refreshToken = await generateRefreshToken(accessToken);
-    console.log("refreshtoken:", refreshToken);
+    // console.log("refreshtoken:", refreshToken);
 
     // Update user with tokens
     await insertToken(accessToken, newUser.id);
@@ -59,6 +59,7 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await findUserByEmail(email);
+        console.log("User:", user)
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
@@ -67,18 +68,18 @@ export const loginUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid password' });
         }  
-        console.log('User logged in:', user); 
+        // console.log('User logged in:', user); 
         const accessToken = generateToken(user);
         // console.log('Generated token:', token);
 
         const insertedTokenUser = await insertToken(accessToken, user.id);
-        console.log('Updated user with token:', insertedTokenUser);
+        // console.log('Updated user with token:', insertedTokenUser);
 
         //refresh token
          const refreshToken = generateRefreshToken(accessToken);
-         console.log('Generated refresh token:', refreshToken);
+        //  console.log('Generated refresh token:', refreshToken);
          const updatedUserWithRefreshToken = await insertRefreshToken(refreshToken, user.id);
-          console.log('Updated user with refresh token:', updatedUserWithRefreshToken);
+          // console.log('Updated user with refresh token:', updatedUserWithRefreshToken);
 
 
         //set cookie with access token and refresh token
@@ -111,26 +112,45 @@ export const loginUser = async (req, res) => {
 
 
 
+
+
 export const deleteUser = async (req, res) => {
-  // console.log('Cookies: ', req.cookies)
   try {
-    const userId = req.params.id;
-    // const currentUser = req.user;
+    const userId = parseInt(req.params.id);
+    console.log(userId)
+    const currentUser = req.user;
 
-    // // Prevent superadmin from deleting itself
-    // if (currentUser.id === parseInt(userId)) {
-    //   return res.status(400).json({ error: "You cannot delete yourself" });
-    // }
+    // Prevent deleting self
+    if (currentUser.id === userId) {
+      return res.status(400).json({ error: "You cannot delete yourself" });
+    }
 
-    const deletedUser = await deleteUserById(userId);
-   
+    const userToDelete = await findUserById(userId);
 
-    res.status(200).json({ 
-        deleteUser,
-        message: "User deleted successfully" 
+    if (!userToDelete) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+
+    // Prevent deleting super admin
+    if (userToDelete.role === "sudo" && currentUser.role !== "sudo") {
+      return res.status(403).json({ error: "You cannot delete a super admin" });
+    }
+
+    //prevent admin deleting admin
+    if(userToDelete.role === "admin" && currentUser.role !== "sudo"){
+            return res.status(403).json({ error: "Only SuperAdmin can delete admin!" });
+
+    }
+    await deleteUserById(userId);
+
+    return res.status(200).json({
+      message: "User deleted successfully",
     });
+
   } catch (error) {
-    res.status(500).json({ error: "Deletion failed" });
+    console.error("Delete user error:", error);
+    return res.status(500).json({ error: "Deletion failed" });
   }
 };
 
