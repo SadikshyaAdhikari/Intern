@@ -75,7 +75,7 @@ export const insertRefreshToken = async (refreshToken, userId) => {
   const query = `
     UPDATE users  
     SET refresh_token = $1
-    WHERE id = $2
+    WHERE id = $2                                                                                                                                           
     RETURNING *;
   `;
   return db.one(query, [refreshToken, userId]);
@@ -96,4 +96,40 @@ export const clearAllTokens = async (userId) => {
     RETURNING *;
   `;
   return db.one(query, [userId]);
+};
+
+
+//add is_deleted and deleted_at columns to user table
+export const addDeletedColumns = async () => {
+  const query = `
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL;
+  `;
+
+  try {
+    await db.none(query);
+    console.log("Soft delete columns added successfully");
+  } catch (error) {
+    console.error(
+      "Error adding is_deleted and deleted_at columns:",
+      error.message
+    );
+    throw error;
+  }
+};
+
+
+//inserting values into is_deleted and deleted_at columns
+export const softDeleteUserById = async (userId) => {
+  const query = `
+    UPDATE users
+    SET 
+      is_deleted = TRUE,
+      deleted_at = NOW()
+    WHERE id = $1 AND is_deleted = FALSE
+    RETURNING id, role, is_deleted, deleted_at;
+  `;
+
+  return db.oneOrNone(query, [userId]);
 };
