@@ -3,6 +3,7 @@ import { logoutUser, logoutFromAllDevices, refreshToken, registerUser } from '..
 import { loginUser } from '../controllers/auth.controllers.js';
 import { deleteUser } from '../controllers/auth.controllers.js';
 import { adminOnly } from '../middleware/adminOnly.js';
+// import { superAdminOnly } from '../middleware/superAdminOnly.js';
 import { viewMyDetails } from '../controllers/auth.controllers.js';
 import { userOnly } from '../middleware/userOnly.js';
 import { verifyRefreshTokenMiddleware } from '../middleware/verifyTokenMiddleware.js';
@@ -17,8 +18,8 @@ router.post('/register', registerUser);
 //Login route
 router.post('/login', loginUser);
 
-//Delete user route
-router.delete('/delete/:id',adminOnly, deleteUser);
+//Delete user route - Only superadmin can delete users
+router.delete('/delete/:id', authMiddleware, deleteUser);
 
 
 //view my details

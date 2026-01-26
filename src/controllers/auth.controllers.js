@@ -115,7 +115,12 @@ export const deleteUser = async (req, res) => {
   // console.log('Cookies: ', req.cookies)
   try {
     const userId = req.params.id;
-    
+    // const currentUser = req.user;
+
+    // // Prevent superadmin from deleting itself
+    // if (currentUser.id === parseInt(userId)) {
+    //   return res.status(400).json({ error: "You cannot delete yourself" });
+    // }
 
     const deletedUser = await deleteUserById(userId);
    
