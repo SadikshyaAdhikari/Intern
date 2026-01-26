@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens, findUserById} from '../models/user.model.js';
+import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens, findUserById, softDeleteUserById} from '../models/user.model.js';
 import { generateRefreshToken, generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
@@ -11,6 +11,8 @@ export const registerUser = async (req, res) => {
     if (user) {
         return res.status(400).json({ error: 'User already exists' });
     }
+
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await insertUser(username, email, hashedPassword, role, '', '');
@@ -64,6 +66,8 @@ export const loginUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid password' });
@@ -121,15 +125,28 @@ export const deleteUser = async (req, res) => {
     const currentUser = req.user;
 
     // Prevent deleting self
-    if (currentUser.id === userId) {
-      return res.status(400).json({ error: "You cannot delete yourself" });
-    }
+    // if (currentUser.id === userId) {
+    //   return res.status(400).json({ error: "You cannot delete yourself" });
+    //}
 
     const userToDelete = await findUserById(userId);
 
     if (!userToDelete) {
       return res.status(404).json({ error: "User not found" });
     }
+    
+   if (currentUser.role === "user" && currentUser.id === userId) {
+      await softDeleteUserById(userId);
+      return res.status(200).json({
+        message: "Your account has been deactivated successfully",
+     });
+    }
+      
+    if (currentUser.role === "user") {
+       return res.status(403).json({
+         error: "You are not allowed to delete other users",
+         });
+        }
 
 
     // Prevent deleting super admin

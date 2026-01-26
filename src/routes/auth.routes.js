@@ -18,8 +18,8 @@ router.post('/register', registerUser);
 //Login route
 router.post('/login', loginUser);
 
-//Delete user route - Only superadmin and admin can delete users
-router.delete('/delete/:id', authMiddleware, adminOnly, deleteUser);
+//Delete user route - Users can soft delete themselves, admins/sudo can delete any user
+router.delete('/delete/:id', authMiddleware, deleteUser);
 
 
 //view my details
