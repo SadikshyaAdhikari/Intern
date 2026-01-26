@@ -1,35 +1,16 @@
-import { verifyToken } from "../utils/token.js";
-
-
-
 export const adminOnly = (req, res, next) => {
   try {
-    // const header = req.headers.authorization;
-
-    // if (!header || !header.startsWith("Bearer ")) {
-    //   return res.status(401).json({ error: "Authorization header missing" });
-    // }
-
-    // const token = header.split(" ")[1];
-
-    const token = req.cookies.accessToken;
-
-    let decoded;
-    try {
-      decoded = verifyToken(token);
-    } catch {
-      return res.status(401).json({ error: "Invalid or expired token" });
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    if (decoded.role !== "admin") {
+    if (req.user.role !== "admin" && req.user.role !== "sudo") {
       return res.status(403).json({ error: "Admins only" });
     }
 
-    req.user = decoded;
-
-    next(); 
+    next();
   } catch (error) {
+    console.error("Admin middleware error:", error);
     return res.status(500).json({ error: "Authorization failed" });
   }
 };
-
