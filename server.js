@@ -4,13 +4,14 @@ dotenv.config();
 import app from "./src/app.js";
 
 import { addColumnToUserTable, createDatabase, updatePhoneNumber } from "./src/services/database.service.js";
-import { createUserTable } from "./src/models/user.model.js";
+import { addDeletedColumns, createUserTable } from "./src/models/user.model.js";
 import { insertUser } from "./src/services/database.service.js";
 import { fetchUsers } from "./src/services/database.service.js";
 import { updateUserEmail } from "./src/services/database.service.js";
 import { deleteUser } from "./src/services/database.service.js";
 import { addRefreshTokenColumn } from "./src/models/user.model.js";
 import { seedSudoAdmin } from "./src/seeders/seed.js";
+
 
 //const PORT = 3000; //dont use this port here use it fronm env file
 
@@ -28,6 +29,7 @@ await createUserTable();
 // await deleteUser([25,35,37]);
 // await addRefreshTokenColumn();
 await seedSudoAdmin();
+await addDeletedColumns();
 
 
 // Start server
