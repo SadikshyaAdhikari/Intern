@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens, findUserById, softDeleteUserById} from '../models/user.model.js';
+import { deleteUserById, findUserByEmail, getUserDetails, insertRefreshToken, insertToken, insertUser, clearAllTokens, findUserById, softDeleteUserById, reactivateUser} from '../models/user.model.js';
 import { generateRefreshToken, generateToken} from '../utils/token.js';
 
 export const registerUser = async (req, res) => {
@@ -8,11 +8,47 @@ export const registerUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body; 
     const user = await findUserByEmail(email);
+    console.log("user",user)
+
+  if(user && user.is_deleted){
+    const hashedPassword = await bcrypt.hash(password, 10);
+       const reactivatedUser = await reactivateUser(
+         user.id,
+         hashedPassword,
+        username
+       );
+
+       const accessToken = generateToken(user);
+       const refreshToken = generateRefreshToken(accessToken);
+
+       await insertToken(accessToken, reactivatedUser.id);
+       await insertRefreshToken(refreshToken, reactivatedUser.id);
+
+        res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 60 * 60 * 1000
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 24 * 60 * 60 * 1000
+      });
+
+      return res.status(200).json({
+        user: reactivatedUser,
+        message: 'Account reactivated successfully',
+        accessToken,
+        refreshToken
+      });
+    }
+
     if (user) {
         return res.status(400).json({ error: 'User already exists' });
     }
-
-
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await insertUser(username, email, hashedPassword, role, '', '');
@@ -55,7 +91,6 @@ export const registerUser = async (req, res) => {
 }
 
 
-
 export const loginUser = async (req, res) => {
   // console.log('Cookies: ', req.cookies)
     try {
@@ -67,6 +102,11 @@ export const loginUser = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        
+        if(user.is_deleted == true){
+           return res.status(403).json({ error: 'this account is deactivated' });
+        }
+        
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {

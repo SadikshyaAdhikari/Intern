@@ -133,3 +133,19 @@ export const softDeleteUserById = async (userId) => {
 
   return db.oneOrNone(query, [userId]);
 };
+
+
+//reactivate deactivated user
+export const reactivateUser = async (userId, hashedPassword, username) => {
+  const query = `
+    UPDATE users
+    SET 
+      is_deleted = false,
+      deleted_at = NULL,
+      password = $1,
+      username = $2
+    WHERE id = $3
+    RETURNING *;
+  `;
+  return db.one(query, [hashedPassword, username, userId]);
+};

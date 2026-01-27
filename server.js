@@ -22,14 +22,14 @@ const PORT = process.env.PORT || 3000;
 // await createUserTable();
 // await insertUser();
 // await fetchUsers();
-await createUserTable();
+// await createUserTable();
 // await updateUserEmail('Ram', 'r@gmail.com');
 // await addColumnToUserTable();
 // await updatePhoneNumber([26, 24], ['9876543210', '9865432109']);
 // await deleteUser([25,35,37]);
 // await addRefreshTokenColumn();
-await seedSudoAdmin();
-await addDeletedColumns();
+// await seedSudoAdmin();
+// await addDeletedColumns();
 
 
 // Start server
