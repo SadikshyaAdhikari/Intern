@@ -26,3 +26,59 @@ export const createOtpTable = async () => {
   `;
   return db.none(query);
 };
+
+
+// invalidate previous active OTPs
+export const invalidateOldOtps = (userId, purpose) => {
+  const query = `
+    UPDATE otps
+    SET is_used = true
+    WHERE user_id = $1
+      AND purpose = $2
+      AND is_used = false
+  `;
+  return db.none(query, [userId, purpose]);
+};
+
+// create new OTP
+export const createOtp = ({ userId, otpHash, purpose, expiresAt }) => {
+  const query = `
+    INSERT INTO otps (user_id, otp_hash, purpose, expires_at)
+    VALUES ($1, $2, $3, $4)
+  `;
+  return db.none(query, [userId, otpHash, purpose, expiresAt]);
+};
+
+// get valid OTP
+export const findValidOtp = (userId, otpHash, purpose) => {
+  const query = `
+    SELECT *
+    FROM otps
+    WHERE user_id = $1
+      AND otp_hash = $2
+      AND purpose = $3
+      AND is_used = false
+      AND expires_at > NOW()
+  `;
+  return db.oneOrNone(query, [userId, otpHash, purpose]);
+};
+
+// mark OTP as used
+export const markOtpAsUsed = (otpId) => {
+  const query = `
+    UPDATE otps
+    SET is_used = true
+    WHERE id = $1
+  `;
+  return db.none(query, [otpId]);
+};
+
+//  increment attempt count
+export const incrementOtpAttempt = (otpId) => {
+  const query = `
+    UPDATE otps
+    SET attempt_count = attempt_count + 1
+    WHERE id = $1
+  `;
+  return db.none(query, [otpId]);
+};

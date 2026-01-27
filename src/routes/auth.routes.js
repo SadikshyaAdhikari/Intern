@@ -8,6 +8,7 @@ import { viewMyDetails } from '../controllers/auth.controllers.js';
 import { userOnly } from '../middleware/userOnly.js';
 import { verifyRefreshTokenMiddleware } from '../middleware/verifyTokenMiddleware.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { forgotPassword } from '../controllers/forgetPassword.controller.js';
 
 
 const router = express.Router();
@@ -34,6 +35,12 @@ router.post('/logout', logoutUser);
 
 //logout from all devices route
 router.post('/logout-all-devices', authMiddleware, logoutFromAllDevices);
+
+//forgot password
+router.post('/forgot-Password', forgotPassword);
+
+//Verify Otp
+
 
 // module.exports = router;
 export default router;
