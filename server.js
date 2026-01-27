@@ -11,6 +11,7 @@ import { updateUserEmail } from "./src/services/database.service.js";
 import { deleteUser } from "./src/services/database.service.js";
 import { addRefreshTokenColumn } from "./src/models/user.model.js";
 import { seedSudoAdmin } from "./src/seeders/seed.js";
+import { createOtpTable } from './src/models/otp.model.js';
 
 
 //const PORT = 3000; //dont use this port here use it fronm env file
@@ -30,6 +31,7 @@ const PORT = process.env.PORT || 3000;
 // await addRefreshTokenColumn();
 // await seedSudoAdmin();
 // await addDeletedColumns();
+await createOtpTable();
 
 
 // Start server
