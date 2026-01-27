@@ -8,7 +8,7 @@ export const registerUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body; 
     const user = await findUserByEmail(email);
-    console.log("user",user)
+    // console.log("user",user)
 
   if(user && user.is_deleted){
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -96,7 +96,7 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await findUserByEmail(email);
-        console.log("User:", user)
+        // console.log("User:", user)
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });

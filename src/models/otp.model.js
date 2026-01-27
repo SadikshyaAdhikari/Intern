@@ -51,6 +51,7 @@ export const createOtp = ({ userId, otpHash, purpose, expiresAt }) => {
 
 // get valid OTP
 export const findValidOtp = (userId, otpHash, purpose) => {
+  console.log("purpose:",purpose)
   const query = `
     SELECT *
     FROM otps
@@ -62,6 +63,7 @@ export const findValidOtp = (userId, otpHash, purpose) => {
   `;
   return db.oneOrNone(query, [userId, otpHash, purpose]);
 };
+  
 
 // mark OTP as used
 export const markOtpAsUsed = (otpId) => {
