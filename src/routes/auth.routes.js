@@ -43,7 +43,7 @@ router.post('/forgot-password', forgotPassword);
 router.post('/forgot-password/verify-otp' ,verifyOtp)
 
 //reset password
-router.post('/reset-password', resetPassword)
+router.post('/reset-password/:reset_token', resetPassword)
 
 // module.exports = router;
 export default router;
