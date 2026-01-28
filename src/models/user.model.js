@@ -149,3 +149,18 @@ export const reactivateUser = async (userId, hashedPassword, username) => {
   `;
   return db.one(query, [hashedPassword, username, userId]);
 };
+
+
+//add reset-token column
+export const addResetTokenColumn = async () => {
+  const query = `
+    ALTER TABLE users
+    
+    ADD COLUMN reset_token_expires VARCHAR(500) NULL;
+  `;
+  try{
+  return db.none(query);
+  } catch (error) {
+    console.error("Error adding reset_token column:", error.message);
+  }
+} ;

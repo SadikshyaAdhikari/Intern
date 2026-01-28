@@ -1,6 +1,7 @@
 
 import { db } from "../config/db.js";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { findUserByEmail } from "../models/user.model.js";
 import { createOtp, findValidOtp, invalidateOldOtps, markOtpAsUsed } from "../models/otp.model.js";
 import { sendOtpEmail } from "../utils/email.js";
@@ -53,7 +54,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     // 6. Send email
-    await sendOtpEmail(user.email, otp);
+    // await sendOtpEmail(user.email, otp);
     // console.log(otp)
     return res.json({
       message: "If the email exists, an OTP has been sent"
@@ -89,15 +90,15 @@ export const verifyOtp = async (req, res) => {
       .update(otp)
       .digest("hex");
 
-      console.log("hashedOtp",otpHash);
+      // console.log("hashedOtp",otpHash);
 
-    console.log("User ID:", user.id);
+    // console.log("User ID:", user.id);
     // console.log("OTP Hash being searched:", otpHash);
     // console.log("Purpose:", "FORGOT_PASSWORD");
 
     // Find the valid OTP record
     const otpRecord = await findValidOtp(user.id, otpHash, "FORGOT_PASSWORD");
-    console.log("OTP Record found:", otpRecord);
+    // console.log("OTP Record found:", otpRecord);
 
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
@@ -108,29 +109,95 @@ export const verifyOtp = async (req, res) => {
     
 
     //  Generate temporary reset token (to allow password reset)
-    // const resetToken = crypto.randomBytes(32).toString("hex");
-    // const resetTokenHash = crypto
-    //   .createHash("sha256")
-    //   .update(resetToken)
-    //   .digest("hex");
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
 
-    // //  Save reset token and expiry in users table
-    // const query = `
-    //   UPDATE users
-    //   SET reset_token = $1,
-    //       reset_token_expires = NOW() + INTERVAL '10 minutes'
-    //   WHERE id = $2
-    // `;
-    // await db.none(query, [resetTokenHash, user.id]);
+    //  Save reset token and expiry in users table
+    const query = `
+      UPDATE users
+      SET reset_token = $1,
+          reset_token_expires = NOW() + INTERVAL '10 minutes'
+      WHERE id = $2
+    `;
+    await db.none(query, [resetTokenHash, user.id]);
 
     //  Return reset token to client
     return res.json({
       message: "OTP verified successfully",
-    //   resetToken
+      resetToken
     });
 
   } catch (error) {
     console.error("Verify OTP error:", error);
     return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    // console.log("resetToken:",resetToken)
+    // console.log("password",newPassword)
+
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({
+        message: "Reset token and new password are required"
+      });
+    }
+
+    // Hash reset token
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    // console.log("resetTokenHash:",resetTokenHash)
+
+    // Find user with valid reset token
+    const user = await db.oneOrNone(
+      `
+      SELECT id
+      FROM users
+      WHERE reset_token = $1
+        AND reset_token_expires::timestamp > NOW()
+      `,
+      [resetTokenHash]
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token"
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password & clear tokens
+    await db.none(
+      `
+      UPDATE users
+      SET password = $1,
+          reset_token = NULL,
+          reset_token_expires = NULL,
+          token = '',
+          refresh_token = ''
+      WHERE id = $2
+      `,
+      [hashedPassword, user.id]
+    );
+
+    return res.json({
+      message: "Password reset successful. Please login again."
+    });
+
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      message: "Something went wrong"
+    });
   }
 };

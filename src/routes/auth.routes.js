@@ -8,7 +8,7 @@ import { viewMyDetails } from '../controllers/auth.controllers.js';
 import { userOnly } from '../middleware/userOnly.js';
 import { verifyRefreshTokenMiddleware } from '../middleware/verifyTokenMiddleware.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
-import { forgotPassword, verifyOtp } from '../controllers/forgetPassword.controller.js';
+import { forgotPassword, resetPassword, verifyOtp } from '../controllers/forgetPassword.controller.js';
 
 
 const router = express.Router();
@@ -41,6 +41,9 @@ router.post('/forgot-password', forgotPassword);
 
 //Verify Otp
 router.post('/forgot-password/verify-otp' ,verifyOtp)
+
+//reset password
+router.post('/reset-password', resetPassword)
 
 // module.exports = router;
 export default router;
