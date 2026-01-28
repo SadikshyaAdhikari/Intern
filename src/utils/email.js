@@ -1,4 +1,8 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -25,7 +29,8 @@ Your password reset OTP is: ${otp}
 
 This OTP is valid for 10 minutes.
 If you didn’t request this, please ignore this email.
-`;
+`
+;
 
   return sendEmail({ to: email, subject, text });
 }

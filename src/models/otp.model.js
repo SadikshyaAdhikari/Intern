@@ -59,7 +59,7 @@ export const findValidOtp = (userId, otpHash, purpose) => {
       AND otp_hash = $2
       AND purpose = $3
       AND is_used = false
-      AND expires_at > NOW()
+      AND expires_at::timestamp with time zone > NOW()
   `;
   return db.oneOrNone(query, [userId, otpHash, purpose]);
 };

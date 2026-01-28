@@ -5,6 +5,10 @@ import bcrypt from "bcryptjs";
 import { findUserByEmail } from "../models/user.model.js";
 import { createOtp, findValidOtp, invalidateOldOtps, markOtpAsUsed } from "../models/otp.model.js";
 import { sendOtpEmail } from "../utils/email.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 export const forgotPassword = async (req, res) => {
   try {
@@ -39,13 +43,19 @@ export const forgotPassword = async (req, res) => {
     // console.log("OTP Hash:", otpHash);
     // console.log("User ID:", user.id);
 
+
     // Save OTP
     try {
+      const otpExpiryMs = Number(process.env.OTP_EXPIRY);
+
+      const expiresAt = new Date(Date.now() + otpExpiryMs);
+
+
       const result = await createOtp({
         userId: user.id,
         otpHash,
         purpose: "FORGOT_PASSWORD",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 mins
+        expiresAt
       });
     //   console.log("OTP created successfully:", result);
     } catch (err) {
@@ -54,14 +64,14 @@ export const forgotPassword = async (req, res) => {
     }
 
     // 6. Send email
-    // await sendOtpEmail(user.email, otp);
+    await sendOtpEmail(user.email, otp);
     // console.log(otp)
     return res.json({
       message: "If the email exists, an OTP has been sent"
     });
 
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -90,15 +100,12 @@ export const verifyOtp = async (req, res) => {
       .update(otp)
       .digest("hex");
 
-      // console.log("hashedOtp",otpHash);
+    // console.log("hashedOtp",otpHash);
 
-    // console.log("User ID:", user.id);
-    // console.log("OTP Hash being searched:", otpHash);
-    // console.log("Purpose:", "FORGOT_PASSWORD");
 
     // Find the valid OTP record
     const otpRecord = await findValidOtp(user.id, otpHash, "FORGOT_PASSWORD");
-    // console.log("OTP Record found:", otpRecord);
+    console.log("OTP Record found:", otpRecord);
 
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
@@ -116,13 +123,20 @@ export const verifyOtp = async (req, res) => {
       .digest("hex");
 
     //  Save reset token and expiry in users table
+    const expiryMinutes = Number(process.env.RESET_TOKEN_EXPIRY);
+
+      const resetTokenExpires = new Date(
+        Date.now() + expiryMinutes * 60 * 1000
+      );
+
     const query = `
       UPDATE users
       SET reset_token = $1,
-          reset_token_expires = NOW() + INTERVAL '10 minutes'
-      WHERE id = $2
+         reset_token_expires = $2 
+    
+      WHERE id = $3
     `;
-    await db.none(query, [resetTokenHash, user.id]);
+    await db.oneOrNone(query, [resetTokenHash, resetTokenExpires.toISOString(), user.id]);
 
     //  Return reset token to client
     return res.json({
@@ -138,14 +152,17 @@ export const verifyOtp = async (req, res) => {
 
 
 export const resetPassword = async (req, res) => {
+ 
   try {
-    const { resetToken, newPassword } = req.body;
+    const { newPassword } = req.body;
+    const resetToken = req.params.reset_token;
+
     // console.log("resetToken:",resetToken)
     // console.log("password",newPassword)
 
-    if (!resetToken || !newPassword) {
+    if ( !newPassword) {
       return res.status(400).json({
-        message: "Reset token and new password are required"
+        message: " Newpassword are required"
       });
     }
 
@@ -162,11 +179,10 @@ export const resetPassword = async (req, res) => {
       SELECT id
       FROM users
       WHERE reset_token = $1
-        AND reset_token_expires::timestamp > NOW()
+        AND reset_token_expires::timestamp with time zone > NOW()
       `,
       [resetTokenHash]
     );
-
     if (!user) {
       return res.status(400).json({
         message: "Invalid or expired reset token"
