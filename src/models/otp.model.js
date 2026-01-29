@@ -84,3 +84,14 @@ export const incrementOtpAttempt = (otpId) => {
   `;
   return db.none(query, [otpId]);
 };
+
+export const getLatestOtp = (userId, purpose) => {
+  return db.oneOrNone(`
+    SELECT *
+    FROM otps
+    WHERE user_id = $1
+      AND purpose = $2
+    ORDER BY created_at DESC
+    LIMIT 1
+  `, [userId, purpose]);
+};

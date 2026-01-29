@@ -32,6 +32,7 @@ If you didn’t request this, please ignore this email.
 `
 ;
 
+
   return sendEmail({ to: email, subject, text });
 }
 
