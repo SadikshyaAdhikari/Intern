@@ -3,7 +3,7 @@ import { db } from "../config/db.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { findUserByEmail } from "../models/user.model.js";
-import { createOtp, findValidOtp, invalidateOldOtps, markOtpAsUsed } from "../models/otp.model.js";
+import { createOtp, findValidOtp, getLatestOtp, invalidateOldOtps, markOtpAsUsed } from "../models/otp.model.js";
 import { sendOtpEmail } from "../utils/email.js";
 import dotenv from 'dotenv';
 
@@ -147,6 +147,65 @@ export const verifyOtp = async (req, res) => {
   } catch (error) {
     console.error("Verify OTP error:", error);
     return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+
+export const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.status(200).json({
+        message: "If the account exists, a new OTP has been sent"
+      });
+    }
+
+    // check last OTP
+    const lastOtp = await getLatestOtp(user.id, "FORGOT_PASSWORD");
+
+    if (lastOtp) {
+      //OTP still valid → block resend
+      if (lastOtp.expires_at > new Date()) {
+        return res.status(400).json({
+          error: "OTP is still valid. Please wait before resending."
+        });
+      }
+    }
+
+    // Step 2: invalidate old OTPs
+    await invalidateOldOtps(user.id, "FORGOT_PASSWORD");
+
+    // Step 3: generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const otpHash = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    const expiresAt = new Date(
+      Date.now() + Number(process.env.OTP_EXPIRY)
+    );
+
+    await createOtp({
+      userId: user.id,
+      otpHash,
+      purpose: "FORGOT_PASSWORD",
+      expiresAt
+    });
+
+    //  Step 4: send email
+    await sendOtpEmail(user.email, otp);
+
+    return res.status(200).json({
+      message: "OTP resent successfully"
+    });
+
+  } catch (error) {
+    console.error("Resend OTP error:", error);
+    return res.status(500).json({ error: "Failed to resend OTP" });
   }
 };
 
